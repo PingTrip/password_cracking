@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
+import re
 import binascii
 
 
@@ -18,8 +19,25 @@ for line in pwds:
 
     uid, pwd = line.split(":", 1)
 
-    if "$HEX" in pwd:
-        pwd = binascii.unhexlify(pwd[pwd.find("[") + 1:pwd.find("]")]).decode('utf-8')
+    part1 = ""
+    part2 = ""
 
-    print uid + ":" + pwd
-    
+    if pwd.startswith("$HEX"):
+        r = re.search(r'^\$HEX\[([0-9A-Za-z]+)\](.*)$', pwd)
+        part1 = binascii.unhexlify(r.group(1)).decode('utf-8')
+        if r.group(2):
+            part2 = r.group(2)
+    elif "$HEX" in pwd:
+        r = re.search(r'^(.*)\$HEX\[([0-9A-Za-z]+)\]$', pwd)
+        part2 = binascii.unhexlify(r.group(2)).decode('utf-8')
+
+        if r.group(1):
+            part1 = r.group(1)
+    else:
+        part1 = pwd
+
+    print(uid + ":" + part1 + part2)
+
+
+
+
