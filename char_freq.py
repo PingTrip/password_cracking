@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 from collections import defaultdict
@@ -20,10 +20,10 @@ def calc_z(observation, stats):
 
 def sort_gen(char_set):
     if args.sort_seen:
-        for char, cnt in sorted(char_set['chr_cnts'].iteritems(), key=lambda (k, v): (v, k), reverse=True):
+        for char, cnt in sorted(char_set['chr_cnts'].items(), key=lambda kv: (kv[1], kv[0]), reverse=True):
             yield (char, cnt)
     else:
-        for char, cnt in sorted(char_set['chr_cnts'].iteritems()):
+        for char, cnt in sorted(char_set['chr_cnts'].items()):
             yield(char, cnt)
 
 
@@ -32,6 +32,7 @@ parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sy
 parser.add_argument('--show-missing', action='store_true', help='Output includes characters with a count of zero')
 parser.add_argument('--show-z', action='store_true', help='Calculates the Z-Score (sample standard deviation) for each character')
 parser.add_argument('--sort-seen', action='store_true', help='Sort by counts each character occured')
+parser.add_argument('--escape', action='store_true', help='Auto-escape special characters in output for Markdown compatibility')
 args = parser.parse_args()
 
 # Define the dicts tp hold character info
@@ -70,6 +71,11 @@ if args.show_missing:
     for c in string.punctuation:
         if c not in special_d['chr_cnts']:
             special_d['chr_cnts'][c] = 0
+
+if args.escape:
+    for c in ['*', '_', '-', '+', '>', '`', '\\', '|']:
+        special_d['chr_cnts'][c] = special_d['chr_cnts']["\\" + c]
+        del special_d['chr_cnts'][c]
 
 # Calculate sample standard deviation
 if args.show_z:
@@ -114,4 +120,5 @@ tab.header(headings)
 for i in range(0, max_row):
     tab.add_row([upper[i], lower[i], digits[i], special[i]])
 
-print tab.draw()
+print(tab.draw())
+
